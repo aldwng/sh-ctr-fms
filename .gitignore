@@ -1,0 +1,11 @@
+/*
+!.gitignore
+!src
+!docs
+!pom.xml
+!thrift
+!bin
+!conf
+!README.md
+.idea
+src/resources/
