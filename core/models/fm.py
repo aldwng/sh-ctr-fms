@@ -1,20 +1,20 @@
 import torch
 import torch.nn as nn
+from layers import FMEmbedding, FactoMachine, FMLinear
 
-class FM(nn.Module):
+class FMModel(nn.Module):
 
-    def __init__(self, n, k):
-        super(FM, self).__init__()
-        self.n = n
-        self.k = k
-        self.linear = nn.Linear(self.n, 1, bias=True)
-        self.vm = nn.Parameter(torch.Tensor(self.k, self.n))
-        nn.init.xavier_uniform_(self.vm)
+    def __init__(self, field_dims, embed_dim):
+        super().__init__()
+        self.embedding = FMEmbedding(field_dims, embed_dim)
+        self.linear = FMLinear(field_dims)
+        self.fm = FactoMachine(reduce_sum=True)
+
 
     def forward(self, x):
-        x1 = self.linear(x)
-        square_of_sum = torch.mm(x, self.vm.T) * torch.mm(x, self.vm.T)
-        sum_of_square = torch.mm(x * x, self.vm.T * self.vm.T)
-        x2 = 0.5 * torch.sum((square_of_sum - sum_of_square), dim=-1, keepdim=True)
-        x = x1 + x2
-        return x
+        x = self.linear(x) + self.fm(self.embedding(x))
+        return torch.sigmoid(x.squeeze(1))
+    
+    def forward(self, linear_x, fm_x):
+        x = self.linear(linear_x) + self.linear(fm_x) + self.fm(self.embedding(fm_x))
+        return torch.sigmoid(x.squeeze(1))
