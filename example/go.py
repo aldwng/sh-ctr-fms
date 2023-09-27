@@ -4,6 +4,7 @@ from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 from core.models.fm import FMModel, FMwModel
 from core.models.lr import LRModel
+from example.ds import CtrDataset
 
 EMBED_DIM = 16
 
@@ -11,7 +12,7 @@ def get_dataset(name, path):
     if name == 'ctr':
         return CtrDataset(path)
     elif name == 'ctr_w':
-        return CtrWDataset(path)
+        return CtrDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
 
