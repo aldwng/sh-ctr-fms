@@ -2,6 +2,7 @@ import torch
 
 from layers import FMLinear
 
+
 class LRModel(torch.nn.Module):
 
     def __init__(self, field_dims):

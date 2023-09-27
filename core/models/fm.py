@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from layers import FMEmbedding, FactoMachine, FMLinear
 
+
 class FMModel(nn.Module):
 
     def __init__(self, field_dims, embed_dim):
@@ -10,11 +11,11 @@ class FMModel(nn.Module):
         self.linear = FMLinear(field_dims)
         self.fm = FactoMachine(reduce_sum=True)
 
-
     def forward(self, x):
         x = self.linear(x) + self.fm(self.embedding(x))
         return torch.sigmoid(x.squeeze(1))
-    
+
+
 class FMwModel(nn.Module):
 
     def __init__(self, fm_field_dims, embed_dim, linear_field_dims):
@@ -25,5 +26,6 @@ class FMwModel(nn.Module):
         self.linear_linear = FMLinear(linear_field_dims)
 
     def forward(self, fm_x, linear_x):
-        x = self.linear(fm_x) + self.fm(self.embedding(fm_x)) + self.linear_linear(linear_x)
+        x = self.linear(fm_x) + self.fm(self.embedding(fm_x)) + \
+            self.linear_linear(linear_x)
         return torch.sigmoid(x.squeeze(1))

@@ -8,6 +8,7 @@ from example.ds import CtrDataset
 
 EMBED_DIM = 16
 
+
 def get_dataset(name, path):
     if name == 'ctr':
         return CtrDataset(path)
@@ -15,6 +16,7 @@ def get_dataset(name, path):
         return CtrDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
+
 
 def get_model(name, dataset, dataset_w):
     field_dims = dataset.field_dims
@@ -27,7 +29,8 @@ def get_model(name, dataset, dataset_w):
         return FMwModel(field_dims, EMBED_DIM, field_dims_w)
     else:
         raise ValueError('unknown model name: ', name)
-    
+
+
 class EarlyStop(object):
 
     def __init__(self, num_trials, save_path):
@@ -47,7 +50,8 @@ class EarlyStop(object):
             return True
         else:
             return True
-        
+
+
 def fit(model, optimizer, data_loader, loss_func, device, log_interval=100):
     model.train()
     total_loss = 0
@@ -64,6 +68,7 @@ def fit(model, optimizer, data_loader, loss_func, device, log_interval=100):
             tk0.set_postfix(loss=total_loss / log_interval)
             total_loss = 0
 
+
 def test(model, data_loader, device):
     model.eval()
     targets, predicts = list(), list()
@@ -74,10 +79,11 @@ def test(model, data_loader, device):
             targets.extend(target.tolist())
             predicts.extend(y.tolist())
         return roc_auc_score(targets, predicts)
-    
-def go(dataset_name, 
-       dataset_path, 
-       model_name, 
+
+
+def go(dataset_name,
+       dataset_path,
+       model_name,
        epoch,
        learning_rate,
        batch_size,
@@ -91,13 +97,18 @@ def go(dataset_name,
     test_length = len(dataset) - train_length - valid_length
     train_dataset, valid_dataset, test_dataset = torch.utils.data.random_split(
         dataset, (train_length, valid_length, test_length))
-    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=8)
-    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=8)
-    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=8)
+    train_data_loader = DataLoader(
+        train_dataset, batch_size=batch_size, num_workers=8)
+    valid_data_loader = DataLoader(
+        valid_dataset, batch_size=batch_size, num_workers=8)
+    test_data_loader = DataLoader(
+        test_dataset, batch_size=batch_size, num_workers=8)
     model = get_model(model_name, dataset).to(device)
     loss_func = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    early_stopper = EarlyStop(num_trials=2, save_path=f'{save_dir}/{model_name}.pt')
+    optimizer = torch.optim.Adam(
+        params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    early_stopper = EarlyStop(
+        num_trials=2, save_path=f'{save_dir}/{model_name}.pt')
     for epoch_i in range(epoch):
         fit(model, optimizer, train_data_loader, loss_func, device)
         auc = test(model, valid_data_loader, device)

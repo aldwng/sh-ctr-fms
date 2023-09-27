@@ -1,31 +1,34 @@
 import numpy as np
 import torch
 
+
 class FMLinear(torch.nn.Module):
-    
+
     def __init__(self, field_dims, output_dim):
         super().__init__()
         self.fc = torch.nn.Embedding(sum(field_dims), output_dim)
         self.bias = torch.nn.Parameter(torch.zeros((output_dim)))
-        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
+        self.offsets = np.array(
+            (0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
 
     def forward(self, x):
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return torch.sum(self.fc(x), dim=1) + self.bias
-    
+
 
 class FMEmbedding(torch.nn.Module):
 
     def __init__(self, field_dims, embed_dim):
         super().__init__()
         self.embedding = torch.nn.Embedding(sum(field_dims), embed_dim)
-        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
+        self.offsets = np.array(
+            (0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
         torch.nn.init.xavier_uniform_(self.embedding.weight.data)
 
     def forward(self, x):
         x = x + x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
-    
+
 
 class FactoMachine(torch.nn.Module):
 
@@ -40,7 +43,8 @@ class FactoMachine(torch.nn.Module):
         if self.reduce_sum:
             ix = torch.sum(ix, dim=1, keepdim=True)
         return 0.5 * ix
-    
+
+
 class InnerProduct(torch.nn.Module):
 
     def forward(self, x):
@@ -50,7 +54,8 @@ class InnerProduct(torch.nn.Module):
             for j in range(i + 1, num_fields):
                 row.append(i), col.append(j)
         return torch.sum(x[:, row] * x[:, col], dim=2)
-    
+
+
 class OuterProduct(torch.nn.Module):
 
     def __ini__(self, num_fields, embed_dim, kernel_type='mat'):

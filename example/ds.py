@@ -33,10 +33,12 @@ class CtrDataset(torch.utils.data.Dataset):
             if dataset_path is None:
                 raise ValueError('create cache: failed: dataset_path is None')
             self.__build_cache(dataset_path, cache_path)
-        self.env = lmdb.open(cache_path, create=False, lock=False, readonly=True)
+        self.env = lmdb.open(cache_path, create=False,
+                             lock=False, readonly=True)
         with self.env.begin(write=False) as txn:
             self.length = txn.stat()['entries'] - 1
-            self.field_dims = np.frombuffer(txn.get(b'field_dims'), dtype=np.uint32)
+            self.field_dims = np.frombuffer(
+                txn.get(b'field_dims'), dtype=np.uint32)
 
     def __getitem__(self, index):
         with self.env.begin(write=False) as txn:
@@ -65,15 +67,18 @@ class CtrDataset(torch.utils.data.Dataset):
         with open(path) as f:
             f.readline()
             pbar = tqdm(f, mininterval=1, smoothing=0.1)
-            pbar.set_description('Create avazu dataset cache: counting features')
+            pbar.set_description(
+                'Create avazu dataset cache: counting features')
             for line in pbar:
                 values = line.rstrip('\n').split(',')
                 if len(values) != self.NUM_FEATS + 2:
                     continue
                 for i in range(1, self.NUM_FEATS + 1):
                     feat_cnts[i][values[i + 1]] += 1
-        feat_mapper = {i: {feat for feat, c in cnt.items() if c >= self.min_threshold} for i, cnt in feat_cnts.items()}
-        feat_mapper = {i: {feat: idx for idx, feat in enumerate(cnt)} for i, cnt in feat_mapper.items()}
+        feat_mapper = {i: {feat for feat, c in cnt.items() if c >= self.min_threshold}
+                       for i, cnt in feat_cnts.items()}
+        feat_mapper = {i: {feat: idx for idx, feat in enumerate(
+            cnt)} for i, cnt in feat_mapper.items()}
         defaults = {i: len(cnt) for i, cnt in feat_mapper.items()}
         return feat_mapper, defaults
 
@@ -92,7 +97,8 @@ class CtrDataset(torch.utils.data.Dataset):
                 np_array[0] = int(values[1])
                 for i in range(1, self.NUM_FEATS + 1):
                     np_array[i] = feat_mapper[i].get(values[i+1], defaults[i])
-                buffer.append((struct.pack('>I', item_idx), np_array.tobytes()))
+                buffer.append(
+                    (struct.pack('>I', item_idx), np_array.tobytes()))
                 item_idx += 1
                 if item_idx % buffer_size == 0:
                     yield buffer
