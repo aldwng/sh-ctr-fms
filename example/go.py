@@ -75,15 +75,15 @@ def test(model, data_loader, device):
             predicts.extend(y.tolist())
         return roc_auc_score(targets, predicts)
     
-def go(dataset_name,
-         dataset_path,
-         model_name,
-         epoch,
-         learning_rate,
-         batch_size,
-         weight_decay,
-         device,
-         save_dir):
+def go(dataset_name, 
+       dataset_path, 
+       model_name, 
+       epoch,
+       learning_rate,
+       batch_size,
+       weight_decay,
+       device,
+       save_dir):
     device = torch.device(device)
     dataset = get_dataset(dataset_name, dataset_path)
     train_length = int(len(dataset) * 0.8)
